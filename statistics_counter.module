@@ -1,0 +1,43 @@
+<?php
+
+/**
+ * @file
+ * Statistics Counter module file.
+ */
+
+/**
+ * Implements hook_cron().
+ */
+function statistics_counter_cron() {
+  $state = \Drupal::state();
+  $timestamp = $state->get('statistics_counter.timestamp', 0);
+
+  $week = (int) date('W');
+  $month = (int) date('n');
+  $year = (int) date('Y');
+
+  $last_week = (int) date('W', $timestamp);
+  $last_month = (int) date('n', $timestamp);
+  $last_year = (int) date('Y', $timestamp);
+
+  $fields = [];
+
+  if ($week !== $last_week || $year !== $last_year) {
+    $fields['weekcount'] = 0;
+  }
+  if ($month !== $last_month || $year !== $last_year) {
+    $fields['monthcount'] = 0;
+  }
+  if ($year !== $last_year) {
+    $fields['yearcount'] = 0;
+  }
+
+  if (!empty($fields)) {
+    \Drupal::database()
+      ->update('node_counter')
+      ->fields($fields)
+      ->execute();
+  }
+
+  $state->set('statistics_counter.timestamp', \Drupal::time()->getRequestTime());
+}

@@ -1,0 +1,83 @@
+<?php
+
+/**
+ * @file
+ * Install, uninstall, and enable hooks for Statistics Counter.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function statistics_counter_install() {
+  $db = \Drupal::database();
+  $transaction = $db->startTransaction();
+
+  $weekcount = [
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+    'size' => 'medium',
+    'description' => 'The total number of times the {node} has been viewed this week.',
+  ];
+  $monthcount = [
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+    'size' => 'medium',
+    'description' => 'The total number of times the {node} has been viewed this month.',
+  ];
+  $yearcount = [
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+    'size' => 'medium',
+    'description' => 'The total number of times the {node} has been viewed this year.',
+  ];
+
+  try {
+    $schema = $db->schema();
+    $schema->addField('node_counter', 'weekcount', $weekcount);
+    $schema->addField('node_counter', 'monthcount', $monthcount);
+    $schema->addField('node_counter', 'yearcount', $yearcount);
+  }
+  catch (\Exception $e) {
+    $transaction->rollback();
+    \Drupal::logger('statistics_counter')->error('Failed to create fields on node_counter table: @message', ['@message' => $e->getMessage()]);
+    \Drupal::messenger()->addError(t('Cannot create new fields in the node_counter table.'));
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function statistics_counter_uninstall() {
+  $db = \Drupal::database();
+  $transaction = $db->startTransaction();
+
+  try {
+    $schema = $db->schema();
+    $schema->dropField('node_counter', 'weekcount');
+    $schema->dropField('node_counter', 'monthcount');
+    $schema->dropField('node_counter', 'yearcount');
+  }
+  catch (\Exception $e) {
+    $transaction->rollback();
+    \Drupal::logger('statistics_counter')->error('Failed to drop fields from node_counter table: @message', ['@message' => $e->getMessage()]);
+    \Drupal::messenger()->addError(t('Cannot drop fields from the node_counter table.'));
+  }
+}
+
+/**
+ * Implements hook_enable().
+ */
+function statistics_counter_enable() {
+  $db = \Drupal::database();
+  $db->update('node_counter')
+    ->expression('weekcount', 'daycount')
+    ->expression('monthcount', 'daycount')
+    ->expression('yearcount', 'daycount')
+    ->execute();
+}

@@ -1,0 +1,11 @@
+services:
+  statistics_counter.event_subscriber:
+    class: Drupal\statistics_counter\EventSubscriber\StatisticsCounterSubscriber
+    arguments:
+      - '@database'
+      - '@request_stack'
+      - '@module_handler'
+      - '@config.factory'
+      - '@current_route_match'
+    tags:
+      - { name: event_subscriber }
