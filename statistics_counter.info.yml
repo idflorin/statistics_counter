@@ -1,9 +1,9 @@
 name: 'Statistics Counter'
 type: module
 description: 'Adds weekly, monthly, and yearly counters to the core statistics module.'
-core_version_requirement: '^10'
+core_version_requirement: '^11'
 package: 'Statistics'
-php: '^8.1 || ^8.2 || ^8.3 || ^8.4'
+php: '^8.2 || ^8.3 || ^8.4'
 dependencies:
   - drupal:statistics
 views_integration: true

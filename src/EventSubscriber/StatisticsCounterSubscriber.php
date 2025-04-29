@@ -45,41 +45,71 @@ class StatisticsCounterSubscriber implements EventSubscriberInterface {
   }
 
   public function updateStatistics(TerminateEvent $event): void {
+    if (!$event->isMainRequest()) {
+      return;
+    }
+
     $request = $this->requestStack->getCurrentRequest();
     if (!$request) {
       return;
     }
 
     $node = $this->routeMatch->getParameter('node');
+    $nid = null;
+    $is_node_view = FALSE;
+
+    if ($node instanceof NodeInterface) {
+      $nid = $node->id();
+      $is_node_view = TRUE;
+    } elseif (is_object($node) && method_exists($node, 'getEntityId')) {
+      $nid = $node->getEntityId();
+      if ($node->getEntityTypeId() === 'node') {
+        $is_node_view = TRUE;
+      }
+    } elseif (is_array($node) && isset($node['nid'])) {
+      $nid = $node['nid'];
+      $is_node_view = TRUE;
+    } elseif (is_numeric($node) || is_string($node)) {
+      $nid = $node;
+      $is_node_view = TRUE;
+    }
+
+    //\Drupal::logger('statistics_counter')->debug('Final Node ID (Attempt 5): @nid (Type: @type), Is Node View: @is_node_view, Is Main Request: @is_main', ['@nid' => print_r($nid, TRUE), '@type' => gettype($nid), '@is_node_view' => $is_node_view, '@is_main' => $event->isMainRequest() ? 'TRUE' : 'FALSE']);
+
     $views_enabled = $this->configFactory
       ->get('statistics.settings')
       ->get('count_content_views');
 
     if (
-      ($node instanceof NodeInterface) &&
+      $is_node_view &&
       ($event->getResponse() instanceof HtmlResponse) &&
-      $views_enabled
+      $views_enabled &&
+      is_scalar($nid)
     ) {
-      if (
-        $this->moduleHandler->moduleExists('statistics_filter')
-        && function_exists('statistics_filter_do_filter')
-        && statistics_filter_do_filter()
-      ) {
-        return;
+      //\Drupal::logger('statistics_counter')->debug('Attempting database update for node ID: @nid (Main Request)', ['@nid' => $nid]);
+      try {
+        $this->database->insert('node_counter')
+          ->fields([
+            'nid' => $nid,
+            'weekcount' => 1,
+            'monthcount' => 1,
+            'yearcount' => 1,
+            'timestamp' => time(),
+          ])
+          ->execute();
+      } catch (\Exception $e) {
+        $this->database->update('node_counter')
+          ->fields([
+            'timestamp' => time(),
+          ])
+          ->expression('weekcount', 'weekcount + 1')
+          ->expression('monthcount', 'monthcount + 1')
+          ->expression('yearcount', 'yearcount + 1')
+          ->condition('nid', $nid)
+          ->execute();
       }
-
-      $this->database->merge('node_counter')
-        ->key(['nid' => $node->id()])
-        ->fields([
-          'weekcount' => 1,
-          'monthcount' => 1,
-          'yearcount' => 1,
-        ])
-        ->expression('weekcount', 'weekcount + 1')
-        ->expression('monthcount', 'monthcount + 1')
-        ->expression('yearcount', 'yearcount + 1')
-        ->execute();
+    } else {
+      //\Drupal::logger('statistics_counter')->debug('Skipping statistics update (Main Request Check). Is Node View: @is_node_view, Views Enabled: @views_enabled, Node ID Scalar: @is_scalar_nid, Is HTML Response: @is_html_response, Is Main Request: @is_main, Node Parameter: @node', [        '@is_node_view' => $is_node_view,        '@views_enabled' => $views_enabled,        '@is_scalar_nid' => is_scalar($nid),        '@is_html_response' => ($event->getResponse() instanceof HtmlResponse) ? 'TRUE' : 'FALSE',        '@is_main' => $event->isMainRequest() ? 'TRUE' : 'FALSE',        '@node' => print_r($node, TRUE),      ]);
     }
   }
-
 }
