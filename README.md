@@ -11,7 +11,7 @@ Adds **weekly**, **monthly**, and **yearly** view counters for nodes on top of D
 ## 🏗️ Requirements
 
 - Drupal Core `statistics` module must be enabled.
-- PHP 8.1+ (recommended PHP 8.3).
+- PHP 8.2+ (recommended PHP 8.3).
 
 ---
 
@@ -57,9 +57,19 @@ drush updb
 
 ## ⚡ How It Works
 
-- Counts are updated when a node is viewed (`entity.node.canonical` route).
-- Uses the Symfony **`kernel.terminate`** event for performance-friendly updates.
-- Resets counters via **`hook_cron()`** once per week/month/year as needed.
+1.  **Subscribes to `KernelEvents::TERMINATE`:** This ensures the view counting logic runs at the end of every page request.
+
+2.  **Checks for Main Request:** It verifies that the current request is the main page request and not a sub-request (e.g., for AJAX or embedded elements). This prevents overcounting.
+
+3.  **Retrieves Node Information:** It attempts to extract the viewed node object from the route parameters. It handles various scenarios where the node might be a `NodeInterface` object, another entity type with a `getEntityId()` method, an array containing the node ID (`nid`), or a direct numeric or string node ID.
+
+4.  **Checks Configuration:** It checks if the "Count content views" setting is enabled in Drupal's statistics configuration (`statistics.settings`).
+
+5.  **Verifies HTML Response:** It ensures that the response being sent to the client is an HTML page. This typically means a full node view.
+
+6.  **Updates View Counts:** If all the above conditions are met, the subscriber updates the `node_counter` database table for the viewed node:
+    * It attempts to insert a new record if one doesn't exist.
+    * If a record already exists, it increments the `weekcount`, `monthcount`, and `yearcount` columns. It also updates the `timestamp` of the last view.
 
 ---
 
