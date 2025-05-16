@@ -91,10 +91,12 @@ drush updb
 Original module maintained at:  
 [https://git.drupalcode.org/project/statistics_counter](https://git.drupalcode.org/project/statistics_counter)
 
-This version updated for **Drupal 11** by 🧩 idflorin.com for https://www.gerane.com/ and https://www.panorica.com/ ...
+This version updated for **Drupal 11** by 🧩 idflorin.com 
+for https://www.gerane.com/ and https://www.panorica.com/ ...
 
 ---
 
 ## 🆘 Support
 
-For bug reports, please open an issue in your project's issue tracker or contact your development team.
+For bug reports, please open an issue in your project's issue tracker 
+or contact your development team.
