@@ -91,7 +91,7 @@ drush updb
 Original module maintained at:  
 [https://git.drupalcode.org/project/statistics_counter](https://git.drupalcode.org/project/statistics_counter)
 
-This version updated for **Drupal 11** by 🧩 idflorin.com for gerane.com and panorica.com ...
+This version updated for **Drupal 11** by 🧩 idflorin.com for https://www.gerane.com/ and https://www.panorica.com/ ...
 
 ---
 
