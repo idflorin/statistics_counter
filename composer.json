@@ -1,5 +1,5 @@
 {
-  "name": "Statistics counter",
+  "name": "idflorin/statistics_counter",
   "description": "Adds weekly, monthly, and yearly counters to the core statistics module.",
   "type": "drupal-module",
   "license": "GPL-2.0-or-later",
