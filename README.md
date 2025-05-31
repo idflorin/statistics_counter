@@ -10,7 +10,7 @@ Adds **weekly**, **monthly**, and **yearly** view counters for nodes on top of D
 
 ## 🏗️ Requirements
 
-- Drupal Core `statistics` module must be enabled.
+- Drupal 11 'statistics' module must be enabled.
 - PHP 8.2+ (recommended PHP 8.3).
 
 ---
