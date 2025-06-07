@@ -77,10 +77,10 @@ class StatisticsCounterSubscriber implements EventSubscriberInterface {
     }
 
     // Optional: skip admin users
-    $account = \Drupal::currentUser();
-    if ($account->hasPermission('administer nodes')) {
-      return;
-    }
+    //$account = \Drupal::currentUser();
+    //if ($account->hasPermission('administer nodes')) {
+    //  return;
+    //}
 
     // Check config setting (mimics Drupal core's behavior toggle)
     $views_enabled = $this->configFactory
