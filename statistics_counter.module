@@ -41,3 +41,35 @@ function statistics_counter_cron() {
 
   $state->set('statistics_counter.timestamp', \Drupal::time()->getRequestTime());
 }
+
+/**
+ * Implements hook_cron().
+ */
+function statistics_counter_cron() {
+  $now = \Drupal::time()->getRequestTime();
+  $state = \Drupal::state();
+
+  // Determine last reset time
+  $last_reset = $state->get('statistics_counter_last_reset', 0);
+  $last_week = strtotime('last Sunday');
+  $last_month = strtotime('first day of this month');
+  $last_year = strtotime('January 1');
+
+  // Reset weekly counts
+  if ($last_reset < $last_week) {
+    \Drupal::database()->update('node_counter')->fields(['weekcount' => 0])->execute();
+  }
+
+  // Reset monthly counts
+  if ($last_reset < $last_month) {
+    \Drupal::database()->update('node_counter')->fields(['monthcount' => 0])->execute();
+  }
+
+  // Reset yearly counts
+  if ($last_reset < $last_year) {
+    \Drupal::database()->update('node_counter')->fields(['yearcount' => 0])->execute();
+  }
+
+  // Save the new reset time
+  $state->set('statistics_counter_last_reset', $now);
+}
