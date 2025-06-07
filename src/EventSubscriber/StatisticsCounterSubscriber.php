@@ -55,8 +55,8 @@ class StatisticsCounterSubscriber implements EventSubscriberInterface {
     }
 
     // Skip bot traffic
-    $user_agent = $request->headers->get('User-Agent');
-    if (preg_match('/bot|crawl|slurp|spider/i', $user_agent)) {
+    $user_agent = (string) $request->headers->get('User-Agent');
+    if ($user_agent && preg_match('/bot|crawl|slurp|spider/i', $user_agent)) {
       return;
     }
 
